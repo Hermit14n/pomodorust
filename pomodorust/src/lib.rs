@@ -2,20 +2,10 @@ use std::time::{Duration, SystemTime};
 
 
 
-trait Timekeeper {
+pub trait Timekeeper {
     // Should be on separate thread keeping time.
-    fn start_timer(&end_time: &Option<u64>){
-        let start = SystemTime::now();
-        match end_time {
-            Some(end_time) => {while start.elapsed().unwrap().as_secs() < end_time {
-
-
-                                     }},
-            _ =>  {while start.elapsed().unwrap().as_secs() < 25*60 {  // 25 min work
-
-            }},
-        }
-
+    fn start_timer(&self){
+       
         }
         
 }
@@ -27,6 +17,22 @@ pub struct Pomodoro{
     work: Option<bool>,
     time_left: Option<u64>
     
+}
+
+impl<'a> Timekeeper for &'a Pomodoro {
+    fn start_timer(&self){
+        let start = SystemTime::now();
+        match self.work_time {
+            Some(endtime) => {while start.elapsed().unwrap().as_secs() < endtime{
+                    println!("\rTime left: {}", endtime - start.elapsed().unwrap().as_secs())
+
+                                     }},
+            _ =>  {while start.elapsed().unwrap().as_secs() < 25*60 {  // 25 min work
+
+            }},
+        }
+
+        }
 }
 
 impl Pomodoro {
@@ -64,9 +70,7 @@ impl Pomodoro {
         self.work=Some(work)
     }
 
-    fn start_timer(&mut self){
-     
-        }
+  
 
 
         
