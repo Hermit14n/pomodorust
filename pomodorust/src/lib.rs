@@ -1,5 +1,6 @@
 use std::time::{Duration, SystemTime};
 use std::io::Write;
+use std::{sync::mpsc, thread};
 
 
 
@@ -21,14 +22,20 @@ pub struct Pomodoro{
 }
 
 impl<'a> Timekeeper for &'a Pomodoro {
-    fn start_timer(&self){
-        let start = SystemTime::now();
-        match self.work_time {
-            Some(endtime) => {while start.elapsed().unwrap().as_secs() < endtime{
-                    print!("\rTime left: {}", endtime - start.elapsed().unwrap().as_secs());
-                    let _ = std::io::stdout().flush();
 
-                                     }},
+    fn start_timer(&self){
+
+        let start = SystemTime::now();
+
+        match self.work_time {
+
+            Some(endtime) => {while start.elapsed().unwrap().as_secs() < endtime
+                                     {
+                                  print!("\rTime left: {}", endtime - start.elapsed().unwrap().as_secs());
+                                  let _ = std::io::stdout().flush();
+                                     }
+                                  },
+
             _ =>  {while start.elapsed().unwrap().as_secs() < 25*60 {  // 25 min work
 
             }},
@@ -38,6 +45,7 @@ impl<'a> Timekeeper for &'a Pomodoro {
 }
 
 impl Pomodoro {
+
     pub fn new_timer(work_time: u64, break_time:u64, work: bool) -> Pomodoro {
         // Need to handle different units as input
         // Seconds/Minutes/Hours
@@ -48,12 +56,12 @@ impl Pomodoro {
             time_left: None,
         };
         
-        new_timer.populate_timer(&work_time, &break_time, &work);
+        new_timer.populate_timer_inputs(&work_time, &break_time, &work);
 
         return new_timer
     }
 
-    fn populate_timer(&mut self, &work_time: &u64, &break_time:&u64, &work: &bool) {
+    fn populate_timer_inputs(&mut self, &work_time: &u64, &break_time:&u64, &work: &bool) {
         self.new_break_time(&break_time);
         self.new_work_time(&work_time);
         self.start_at_work(&work);
@@ -70,6 +78,16 @@ impl Pomodoro {
 
     fn start_at_work(&mut self, &work: &bool) {
         self.work=Some(work)
+    }
+
+    fn execute(&mut self) {
+        // start new thread and transfer timer to the thread via "start timer"
+        let (tx, rx) = mpsc::channel::<Self>();
+
+        thread::spawn(move || {
+            tx.send(self);
+        });
+
     }
 
   
@@ -115,6 +133,8 @@ mod tests {
         
         assert_eq!(new_timer.work.unwrap(), false);
     }
+
+
 
     
 }
