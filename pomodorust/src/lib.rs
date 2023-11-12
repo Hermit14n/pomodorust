@@ -1,4 +1,5 @@
 use std::time::{Duration, SystemTime};
+use std::io::Write;
 
 
 
@@ -24,7 +25,8 @@ impl<'a> Timekeeper for &'a Pomodoro {
         let start = SystemTime::now();
         match self.work_time {
             Some(endtime) => {while start.elapsed().unwrap().as_secs() < endtime{
-                    println!("\rTime left: {}", endtime - start.elapsed().unwrap().as_secs())
+                    print!("\rTime left: {}", endtime - start.elapsed().unwrap().as_secs());
+                    let _ = std::io::stdout().flush();
 
                                      }},
             _ =>  {while start.elapsed().unwrap().as_secs() < 25*60 {  // 25 min work
