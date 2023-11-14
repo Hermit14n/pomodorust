@@ -61,7 +61,7 @@ impl<StartState> Pomodoro<StartState> {
             work_time: None,
             break_time: None,
             time_left: None,
-            state: StartState,
+            state: StartState, // TODO: Weirdly getting expecting value error here when it should be a type
 
         };
         
@@ -74,7 +74,7 @@ impl<StartState> Pomodoro<StartState> {
         self.new_break_time(&break_time);
         self.new_work_time(&work_time);
         self.time_left = if work {self.work_time} else {self.break_time};
-        self.state = Option::Some(StartState {
+        self.state = Option::Some(StartState { // TODO: is this how we want to start the states?
             work_time: self.work_time,
             break_time: self.break_time,
             time_left: self.time_left,
