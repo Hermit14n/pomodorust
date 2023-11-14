@@ -13,7 +13,7 @@ impl State for StartState {
             work_time: self.work_time,
             break_time: self.break_time,
             time_left: self.work_time,
-            prev_state: Option::Some(Self),
+            prev_state: Option::Some(*self),
     })
     }
     fn start_break(self: Box<Self>) -> Box<dyn State> {
