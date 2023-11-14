@@ -1,5 +1,5 @@
 use crate::timerstates::{stopstate::StopState, workstate::WorkState};
-use crate::timerstates::statetraits;
+use crate::timerstates::statetraits::{State, Timekeeper};
 
 pub struct PauseState<T> {
     pub work_time: Option<u64>,
@@ -9,23 +9,37 @@ pub struct PauseState<T> {
     
 }
 
-impl<T> PauseState<T> {
+impl<T> State for PauseState<T> {
 
-    pub fn stop_and_reset(self) -> StopState<Self> {
-        StopState::<Self> {
+     fn stop_and_reset(self: Box<Self>) -> Box<dyn State + 'static> {    
+            Box::new(StopState::<Self> {
             work_time: self.work_time,
             break_time: self.break_time,
             time_left: self.time_left,
-            prev_state: Option::Some(self),  
-    }
+            prev_state: Option::Some(*self),  
+    })
 }
 
-    pub fn start_work(self) -> WorkState<Self> {
-        WorkState::<Self> {
+     fn start_work(self: Box<Self>) -> Box<dyn State + 'static> {
+        Box::new(WorkState::<Self> {
             work_time: self.work_time,
             break_time: self.break_time,
             time_left: self.time_left,
-            prev_state: Option::Some(self), 
-        }
+            prev_state: Option::Some(*self), 
+        })
+    }
+
+     fn start_break(self: Box<Self>) -> Box<dyn State + 'static> {
+        Box::new(PauseState::<Self> { 
+            work_time: self.work_time, 
+            break_time: self.break_time, 
+            time_left: self.time_left, 
+            prev_state: Option::Some(*self),
+         })
+    }
+
+    fn pause_timer(self: Box<Self>) ->  Box<dyn State + 'static>{
+        println!("Already paused!");
+        self
     }
 }

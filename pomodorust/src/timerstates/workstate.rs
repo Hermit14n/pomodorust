@@ -1,5 +1,5 @@
 use crate::timerstates::{breakstate::BreakState, pausestate::PauseState, stopstate::StopState};
-use crate::timerstates::statetraits;
+use crate::timerstates::statetraits::{State, Timekeeper};
 
 pub struct WorkState<T> {
     pub work_time: Option<u64>,
@@ -9,32 +9,39 @@ pub struct WorkState<T> {
     // Possibly add timer functionality here
 }
 
-impl<T> WorkState<T> {
-    pub fn start_break(self) -> BreakState<Self> {
-        BreakState::<Self> {
+
+impl<T> State for WorkState<T> {
+    fn start_break(self: Box<Self>) -> Box<dyn State + 'static> {
+        Box::new(BreakState::<Self> {
             work_time: self.work_time,
             break_time: self.break_time,
             time_left: self.time_left, 
-            prev_state: Option::Some(self),
-        }
+            prev_state: Option::Some(*self),
+        })
     }
 
-    pub fn pause_timer(self) -> PauseState<Self> {
-        PauseState::<Self> {
+    fn pause_timer(self: Box<Self>) -> Box<dyn State + 'static> {
+        Box::new(PauseState::<Self> {
             work_time: self.work_time,
             break_time: self.break_time,
             time_left: self.time_left, 
-            prev_state: Option::Some(self),
-        }
+            prev_state: Option::Some(*self),
+        })
     }
 
-    pub fn stop_and_reset(self) -> StopState<Self> {
-        StopState::<Self> {
+    fn stop_and_reset(self: Box<Self>) -> Box<dyn State + 'static> {
+        Box::new(StopState::<Self> {
             work_time: self.work_time,
             break_time: self.break_time,
             time_left: self.time_left, 
-            prev_state: Option::Some(self),
-        }
+            prev_state: Option::Some(*self),
+        })
+    }
+
+    fn start_work(self: Box<Self>) -> Box<dyn State + 'static> {
+        println!("Already working");
+        self
+
     }
 
 }
