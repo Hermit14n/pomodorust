@@ -18,6 +18,11 @@ impl<T> State for StopState<T> {  // have to specify type at impl, so rust knows
             prev_state: Option::Some(*self),
         })
     }
+    fn start_timer(self: Box<Self>) -> Box<dyn State + 'static> {
+        println!("Stopped, choose break or work");
+        self
+
+    }
 
     fn start_break(self: Box<Self>) -> Box<dyn State + 'static>  {
         Box::new(BreakState::<Self> {

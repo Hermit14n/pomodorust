@@ -18,8 +18,14 @@ impl<T> State for PauseState<T> {
             time_left: self.time_left,
             prev_state: Option::Some(*self),  
     })
+
+    
 }
 
+fn start_timer(self: Box<Self>) -> Box<dyn State + 'static> {
+        self.prev_state.unwrap()
+    
+}
      fn start_work(self: Box<Self>) -> Box<dyn State + 'static> {
         Box::new(WorkState::<Self> {
             work_time: self.work_time,

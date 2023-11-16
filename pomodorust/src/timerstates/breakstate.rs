@@ -20,6 +20,15 @@ impl<T> State for BreakState<T> {
         })
     }
 
+    fn start_timer(self: Box<Self>) -> Box<dyn State + 'static> {
+        Box::new(PauseState::<Self> {
+            work_time: self.work_time,
+            break_time: self.break_time,
+            time_left: self.time_left, 
+            prev_state: Option::Some(*self),
+        })
+    }
+
     fn stop_and_reset(self: Box<Self>) -> Box<dyn State + 'static> {
         Box::new(StopState::<Self> {
             work_time: self.work_time,

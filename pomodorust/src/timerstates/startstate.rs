@@ -16,13 +16,13 @@ impl State for StartState {
             prev_state: Option::Some(*self),
     })
     }
-    fn start_break(self: Box<Self>) -> Box<dyn State> {
+    fn start_break(self: Box<Self>) -> Box<dyn State + 'static> {
 
     }
-    fn stop_and_reset(self: Box<Self>) -> Box<dyn State> {
+    fn stop_and_reset(self: Box<Self>) -> Box<dyn State + 'static> {
 
     }
-    fn pause_timer(self: Box<Self>) -> Box<dyn State> {
+    fn pause_timer(self: Box<Self>) -> Box<dyn State + 'static> {
 
     }
 }
