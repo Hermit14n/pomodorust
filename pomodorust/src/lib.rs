@@ -19,12 +19,12 @@ impl<'a> Timer<'a> {
         };
         timer
     }
-    pub fn start_break(self) -> BreakTimer<'a> { // Start break consumes WorkTimer and creates a BreakTimer
+    pub fn start_break(self) -> Option<BreakTimer<'a>> { // Start break consumes WorkTimer and creates a BreakTimer
         let timer = BreakTimer::start_timer(self.worktime, self.breaktime);
         timer
     }
 
-    pub fn start_work(self) -> WorkTimer<'a> { // start work consumes BreakTimer and returns a Worktimer
+    pub fn start_work(self) -> Option<WorkTimer<'a>> { // start work consumes BreakTimer and returns a Worktimer
         let timer = WorkTimer::start_timer(self.worktime, self.breaktime);
         timer
     }
@@ -33,19 +33,17 @@ impl<'a> Timer<'a> {
 pub struct WorkTimer<'a> {
     worktime: &'a mut f64,
     breaktime: &'a mut f64,
-    time_left: f64,
     
 
 }
 
 impl<'a> WorkTimer<'a> {
 
-    pub fn start_timer(worktime: &'a mut f64, breaktime: &'a mut f64) -> WorkTimer<'a>{
+    pub fn start_timer(worktime: &'a mut f64, breaktime: &'a mut f64) -> Option<WorkTimer<'a>>{
 
         let timer =  WorkTimer{
             worktime,
             breaktime,
-            time_left: worktime.clone(),
             };
             let elapsed = SystemTime::now();
     
@@ -53,11 +51,11 @@ impl<'a> WorkTimer<'a> {
                 println!("Work time left {:?}", *timer.breaktime -  &elapsed.elapsed().unwrap().as_secs_f64())
             };
     
-            timer
+            Some(timer)
 
     }
 
-    pub fn start_break(self) -> BreakTimer<'a> { // Start break consumes WorkTimer and creates a BreakTimer
+    pub fn start_break(self) -> Option<BreakTimer<'a>> { // Start break consumes WorkTimer and creates a BreakTimer
         let timer = BreakTimer::start_timer(self.worktime, self.breaktime);
         timer
     }
@@ -73,7 +71,7 @@ pub struct BreakTimer<'a> {
 }
 
 impl<'a> BreakTimer<'a> {
-    pub fn start_timer(worktime: &'a mut f64, breaktime: &'a mut f64) -> BreakTimer<'a> {
+    pub fn start_timer(worktime: &'a mut f64, breaktime: &'a mut f64) -> Option<BreakTimer<'a>> {
         let timer =  BreakTimer{
         worktime,
         breaktime,
@@ -84,10 +82,10 @@ impl<'a> BreakTimer<'a> {
             println!("Work time left {:?}", *timer.breaktime -  &elapsed.elapsed().unwrap().as_secs_f64())
         };
 
-        timer
+        Some(timer)
 
     }
-    pub fn start_work(self) -> WorkTimer<'a> { // start work consumes BreakTimer and returns a Worktimer
+    pub fn start_work(self) -> Option<WorkTimer<'a>> { // start work consumes BreakTimer and returns a Worktimer
         let timer = WorkTimer::start_timer(self.worktime, self.breaktime);
         timer
     }

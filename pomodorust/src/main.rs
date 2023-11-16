@@ -6,7 +6,10 @@ use pomodorust::{BreakTimer, WorkTimer, Timer};
 fn main() {
 
     let timer = Timer::new_timer(&mut 30.0, &mut 10.0);
- 
+    while true {
+        timer.start_work();
+        timer.start_break();
+    }
     
 
     // Want to accept args
