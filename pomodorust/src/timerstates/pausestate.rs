@@ -1,7 +1,7 @@
 use crate::timerstates::{stopstate::StopState, workstate::WorkState};
 use crate::timerstates::statetraits::{State, Timekeeper};
 
-pub struct PauseState<T> {
+pub struct PauseState<T: State> {
     pub work_time: Option<u64>,
     pub break_time: Option<u64>,
     pub time_left: Option<u64>,
@@ -9,7 +9,7 @@ pub struct PauseState<T> {
     
 }
 
-impl<T> State for PauseState<T> {
+impl<T: State> State for PauseState<T: State> {
 
      fn stop_and_reset(self: Box<Self>) -> Box<dyn State + 'static> {    
             Box::new(StopState::<Self> {
@@ -23,7 +23,7 @@ impl<T> State for PauseState<T> {
 }
 
 fn start_timer(self: Box<Self>) -> Box<dyn State + 'static> {
-        self.prev_state.unwrap()
+        self.prev_state.take()
     
 }
      fn start_work(self: Box<Self>) -> Box<dyn State + 'static> {
