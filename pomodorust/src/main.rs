@@ -7,6 +7,7 @@ fn main() {
     let breaktime = 10.0;
     let timer = Timer::new_timer(worktime, breaktime);
     let _worktimer = timer.start_work().unwrap();
+    
     loop {
         
         let _breaktimer: BreakTimer = _worktimer.start_break().unwrap();

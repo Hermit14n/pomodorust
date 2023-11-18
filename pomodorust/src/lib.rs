@@ -1,4 +1,5 @@
 use std::time::SystemTime;
+use std::io::{stdout, Write};
 
 #[derive(Copy, Clone)]
 
@@ -45,7 +46,9 @@ impl WorkTimer {
             let elapsed = SystemTime::now();
     
             while elapsed.elapsed().unwrap().as_secs_f64() < timer.worktime {
-                println!("Work time left {:?}", timer.worktime -  elapsed.elapsed().unwrap().as_secs_f64())
+                stdout().flush().unwrap();
+                print!("\rWork time left {:.2?}", timer.worktime -  elapsed.elapsed().unwrap().as_secs_f64());
+                
             };
     
             Some(timer)
@@ -78,7 +81,9 @@ impl BreakTimer {
         let elapsed = SystemTime::now();
 
         while elapsed.elapsed().unwrap().as_secs_f64() < timer.breaktime {
-            println!("Break time left {:?}", timer.breaktime -  elapsed.elapsed().unwrap().as_secs_f64())
+            stdout().flush().unwrap();
+            print!("\rBreak time left {:.2?}", timer.breaktime -  elapsed.elapsed().unwrap().as_secs_f64());
+            
         };
 
         Some(timer)
