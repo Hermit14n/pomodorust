@@ -35,7 +35,7 @@ fn main() {
         rounds = *cli_rounds;
     }
 
-    
+    //------------Worker Thread init----------------//
     let timer = Timer::new_timer(worktime, breaktime);
     let handle = thread::spawn(move || {
         let _worktimer = timer.start_work().unwrap();
@@ -51,14 +51,17 @@ fn main() {
 
          } 
     });
+    //------------Worker Thread end-----------------//
 
     handle.join().expect("Thread panicked"); // termination of the main thread will also
                                                   // terminate child thread, join keeps
                                                   // main in scope so child thread can run
 
     // Want to accept args
-        // work time             -w <f64>
-        // break time            -b <f64>
+        // work time             -w <f64>    Done
+        // break time            -b <f64>    Done
+        // # rounds              -r <i32>    Done
+        // separate worker thread            Done
         // progress bar yes/no   -p <bool>
         // pretty view           -v <bool>
 }
