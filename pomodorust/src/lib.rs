@@ -1,8 +1,4 @@
-use std::time::{Duration, SystemTime};
-use std::io::Write;
-use std::{sync::mpsc, thread};
-
-
+use std::time::SystemTime;
 
 #[derive(Copy, Clone)]
 
@@ -36,7 +32,6 @@ pub struct WorkTimer {
     worktime: f64,
     breaktime: f64,
      
-
 }
 
 impl WorkTimer {
