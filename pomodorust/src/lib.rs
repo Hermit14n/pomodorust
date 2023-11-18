@@ -95,7 +95,7 @@ impl BreakTimer {
         while elapsed.elapsed().unwrap().as_secs_f64() < timer.breaktime {
 
             if timer.status.pause.unwrap() != true {
-                
+
                 stdout().flush().unwrap();
                 print!("\rBreak time left {:.2?}", timer.breaktime -  elapsed.elapsed().unwrap().as_secs_f64());
             
