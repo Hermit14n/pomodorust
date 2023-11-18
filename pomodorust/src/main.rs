@@ -7,6 +7,7 @@ use std::thread;
 fn main() {
     let mut worktime = 8.0;
     let mut breaktime = 10.0;
+    let mut rounds: f64 = 10.0;
 
     let (tx, _rx) = mpsc::channel();
 
@@ -16,6 +17,9 @@ fn main() {
         ).value_parser(clap::value_parser!(f64)))
         .arg(arg!(
             -b --breaktime <f64> ... "Add break length in minutes"
+        ).value_parser(clap::value_parser!(f64)))
+        .arg(arg!(
+            -r --rounds <f64> ... "Add number of work/break rounds"
         ).value_parser(clap::value_parser!(f64)))
         .get_matches();
     
@@ -27,6 +31,10 @@ fn main() {
         breaktime = *cli_breaktime * 60.0;
     }
 
+    if let Some(cli_rounds) = matches.get_one::<f64>("rounds"){
+        rounds = *cli_rounds;
+    }
+
     
     let timer = Timer::new_timer(worktime, breaktime);
     let handle = thread::spawn(move || {
@@ -34,7 +42,10 @@ fn main() {
         tx.send(_worktimer).expect("Problem with channel to worker thread");
         
     loop {
-        
+        rounds -= 1.0;
+        if rounds == 0.0 {
+            break
+        }
         let _breaktimer: BreakTimer = _worktimer.start_break().unwrap();
         let _worktimer: WorkTimer = _breaktimer.start_work().unwrap();
 
