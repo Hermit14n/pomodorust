@@ -2,12 +2,9 @@ use std::time::SystemTime;
 use std::io::{stdout, Write};
 
 #[derive(Copy, Clone)]
-
 pub struct Timer {
     worktime: f64,
     breaktime: f64,
-
-
 }
 impl Timer {
     pub fn new_timer( worktime: f64, breaktime:  f64) -> Timer {
@@ -32,7 +29,6 @@ impl Timer {
 pub struct WorkTimer {
     worktime: f64,
     breaktime: f64,
-     
 }
 
 impl WorkTimer {
@@ -64,12 +60,9 @@ impl WorkTimer {
 }
 
 #[derive(Copy, Clone)]
-
 pub struct BreakTimer {
     worktime:  f64,
     breaktime:  f64,
-
-
 }
 
 impl BreakTimer {
@@ -83,7 +76,6 @@ impl BreakTimer {
         while elapsed.elapsed().unwrap().as_secs_f64() < timer.breaktime {
             stdout().flush().unwrap();
             print!("\rBreak time left {:.2?}", timer.breaktime -  elapsed.elapsed().unwrap().as_secs_f64());
-            
         };
 
         Some(timer)
