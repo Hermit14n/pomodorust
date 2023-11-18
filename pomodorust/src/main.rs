@@ -7,7 +7,7 @@ fn main() {
     let breaktime = 10.0;
     let timer = Timer::new_timer(worktime, breaktime);
     let _worktimer = timer.start_work().unwrap();
-    
+
     loop {
         
         let _breaktimer: BreakTimer = _worktimer.start_break().unwrap();
@@ -16,8 +16,8 @@ fn main() {
     
 
     // Want to accept args
-        // work time             --wt <f32>
-        // break time            --bt <f32>
+        // work time             --wt <f64>
+        // break time            --bt <f64>
         // progress bar yes/no   --pb <bool>
         // pretty view           --pv <bool>
 }
