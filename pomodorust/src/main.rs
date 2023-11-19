@@ -1,6 +1,6 @@
 use pomodorust::{BreakTimer, WorkTimer, Timer, Status};
 use clap::{arg, command};
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
 
@@ -8,10 +8,7 @@ fn main() {
     let mut worktime = 8.0;
     let mut breaktime = 10.0;
     let mut rounds: i32 = 10;
-    let status = Status{ pause: Some(false), 
-                                     reset: Some(false), 
-                                     stop: Some(false)
-                                    };
+    let status = Arc::new(Mutex::new(Status::Active));
 
     let (tx, _rx) = mpsc::channel();
 
@@ -40,18 +37,18 @@ fn main() {
     }
 
     //------------Worker Thread init----------------//
-    let timer = Timer::new_timer(worktime, breaktime, status);
+    let timer = Timer::new_timer(worktime, breaktime, Arc::clone(&status));
     let handle = thread::spawn(move || {
         let _worktimer = timer.start_work().unwrap();
-        tx.send(_worktimer).expect("Problem with channel to worker thread");
+        tx.send(_worktimer.clone()).expect("Problem with channel to worker thread");
         
     loop {
         rounds -= 1;
         if rounds == 0 {
             break
         }
-        let _breaktimer: BreakTimer = _worktimer.start_break().unwrap();
-        let _worktimer: WorkTimer = _breaktimer.start_work().unwrap();
+        let _breaktimer: BreakTimer = _worktimer.clone().start_break().unwrap();
+        let _worktimer: WorkTimer = _breaktimer.clone().start_work().unwrap();
 
          } 
     });
