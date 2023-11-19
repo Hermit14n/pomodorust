@@ -14,7 +14,7 @@ impl Timer {
         let timer = Timer {
         worktime,
         breaktime,
-        status: Arc::clone(&status),
+        status,
         };
         timer
     }
@@ -43,7 +43,7 @@ impl WorkTimer {
         let timer =  WorkTimer{
             worktime,
             breaktime,
-            status: Arc::clone(&status),
+            status,
             };
             let mut elapsed = SystemTime::now();
     
@@ -60,7 +60,8 @@ impl WorkTimer {
                     stdout().flush().unwrap();
                     print!("\rWork timer paused at {:.2?}", timer.worktime -  pause_time.elapsed().unwrap().as_secs_f64());
                     let difference = elapsed.duration_since(pause_time);
-                    elapsed -= difference.unwrap();
+                    elapsed -= difference.unwrap(); // failure to pause printed time problem is here
+                    println!("paused elapsed time is {:?}", elapsed.elapsed().unwrap().as_secs_f64());
                 }
                 
             };
@@ -89,7 +90,7 @@ impl BreakTimer {
         let timer =  BreakTimer{
         worktime,
         breaktime,
-        status: Arc::clone(&status),
+        status,
         };
         let mut elapsed = SystemTime::now();
 
@@ -105,7 +106,7 @@ impl BreakTimer {
 
                 let pause_time = elapsed;
                 stdout().flush().unwrap();
-                print!("\rWork timer paused at {:.2?}", timer.worktime -  pause_time.elapsed().unwrap().as_secs_f64());
+                print!("\rBreak timer paused at {:.2?}", timer.worktime -  pause_time.elapsed().unwrap().as_secs_f64());
                 let difference = elapsed.duration_since(pause_time);
                 elapsed -= difference.unwrap();
             };
@@ -120,7 +121,7 @@ impl BreakTimer {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum Status {
     Pause,
     Reset,

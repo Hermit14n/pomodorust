@@ -1,5 +1,6 @@
 use pomodorust::{BreakTimer, WorkTimer, Timer, Status};
 use clap::{arg, command};
+use std::io;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
@@ -53,6 +54,25 @@ fn main() {
          } 
     });
     //------------Worker Thread end-----------------//
+    loop {
+        println!("Press [p] to pause, [c] to continue, [e] to exit");
+
+        let mut buffer = String::new();
+        io::stdin()
+            .read_line(&mut buffer)
+            .expect("Enter valid input");
+
+        buffer = buffer.trim().to_string();
+
+        if buffer == "c" {
+            continue;
+        } else if buffer == "p"{
+            *status.lock().unwrap() = Status::Pause;
+        } else if buffer == "e" {
+            break;
+        }
+    };
+
 
     handle.join().expect("Thread panicked"); // termination of the main thread will also
                                                   // terminate child thread, join keeps
