@@ -78,7 +78,7 @@ fn main() {
                                                   // terminate child thread, join keeps
                                                   // main in scope so child thread can run
 
-    // Want to accept args
+        // Want to accept args               Done
         // work time             -w <f64>    Done
         // break time            -b <f64>    Done
         // # rounds              -r <i32>    Done

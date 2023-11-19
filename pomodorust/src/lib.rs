@@ -19,12 +19,12 @@ impl Timer {
         timer
     }
     pub fn start_break(self) -> Option<BreakTimer> { // Start break consumes WorkTimer and creates a BreakTimer
-        let timer = BreakTimer::start_timer(self.worktime, self.breaktime, Arc::clone(&self.status));
+        let timer = BreakTimer::start_timer(self.worktime, self.breaktime, self.status);
         timer
     }
 
     pub fn start_work(self) -> Option<WorkTimer> { // start work consumes BreakTimer and returns a Worktimer
-        let timer = WorkTimer::start_timer(self.worktime, self.breaktime, Arc::clone(&self.status));
+        let timer = WorkTimer::start_timer(self.worktime, self.breaktime, self.status);
         timer
     }
 }
