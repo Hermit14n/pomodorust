@@ -1,4 +1,4 @@
-use std::time::SystemTime;
+use std::time::Instant;
 use std::io::{stdout, Write};
 use std::sync::{Arc, Mutex};
 
@@ -45,23 +45,27 @@ impl WorkTimer {
             breaktime,
             status,
             };
-            let mut elapsed = SystemTime::now();
+            let elapsed = Instant::now();
     
-            while elapsed.elapsed().unwrap().as_secs_f64() < timer.worktime {
+            while elapsed.elapsed().as_secs_f64() < timer.worktime {
 
                 if *timer.status.lock().unwrap() == Status::Active {
 
                     stdout().flush().unwrap();
-                    print!("\rWork time left {:.2?}", timer.worktime -  elapsed.elapsed().unwrap().as_secs_f64());
+                    print!("\rWork time left {:.2?}", timer.worktime -  elapsed.elapsed().as_secs_f64());
 
                 } else if *timer.status.lock().unwrap() == Status::Pause {
-
-                    let pause_time = elapsed;
-                    stdout().flush().unwrap();
-                    print!("\rWork timer paused at {:.2?}", timer.worktime -  pause_time.elapsed().unwrap().as_secs_f64());
-                    let difference = elapsed.duration_since(pause_time);
-                    elapsed -= difference.unwrap(); // failure to pause printed time problem is here
-                    println!("paused elapsed time is {:?}", elapsed.elapsed().unwrap().as_secs_f64());
+ 
+                    loop {
+                       
+                        stdout().flush().unwrap();
+                        print!("\rWork timer paused at {:.2?}", timer.worktime - elapsed.elapsed().as_secs_f64());
+                         // failure to pause printed time problem is here
+                        if *timer.status.lock().unwrap() == Status::Active {
+                           
+                            break;
+                        } 
+                    }
                 }
                 
             };
@@ -92,23 +96,29 @@ impl BreakTimer {
         breaktime,
         status,
         };
-        let mut elapsed = SystemTime::now();
+        let elapsed = Instant::now();
 
-        while elapsed.elapsed().unwrap().as_secs_f64() < timer.breaktime {
+        while elapsed.elapsed().as_secs_f64() < timer.breaktime {
 
             if *timer.status.lock().unwrap() == Status::Active {
 
                 stdout().flush().unwrap();
-                print!("\rBreak time left {:.2?}", timer.breaktime -  elapsed.elapsed().unwrap().as_secs_f64());
+                print!("\rBreak time left {:.2?}", timer.breaktime -  elapsed.elapsed().as_secs_f64());
             
             
             } else if *timer.status.lock().unwrap() == Status::Pause {
 
-                let pause_time = elapsed;
-                stdout().flush().unwrap();
-                print!("\rBreak timer paused at {:.2?}", timer.worktime -  pause_time.elapsed().unwrap().as_secs_f64());
-                let difference = elapsed.duration_since(pause_time);
-                elapsed -= difference.unwrap();
+                
+
+                loop {
+                    stdout().flush().unwrap();
+                    print!("\rBreak timer paused at {:.2?}", timer.breaktime - elapsed.elapsed().as_secs_f64());
+                        // failure to pause printed time problem is here
+                    if *timer.status.lock().unwrap() == Status::Active {
+                        
+                        break;
+                    } 
+                }
             };
         };
 
