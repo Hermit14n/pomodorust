@@ -45,24 +45,22 @@ impl WorkTimer {
             breaktime,
             status,
             };
-            let elapsed = Instant::now();
-    
-            while elapsed.elapsed().as_secs_f64() < timer.worktime {
-
+            let mut elapsed = Instant::now();
+            let mut work_time_left = timer.worktime.clone();
+            println!("{:?}", work_time_left);
+            while work_time_left > 0.0 { // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
                 if *timer.status.lock().unwrap() == Status::Active {
 
                     stdout().flush().unwrap();
                     print!("\rWork time left {:.2?}", timer.worktime -  elapsed.elapsed().as_secs_f64());
-
                 } else if *timer.status.lock().unwrap() == Status::Pause {
- 
                     loop {
                        
                         stdout().flush().unwrap();
-                        print!("\rWork timer paused at {:.2?}", timer.worktime - elapsed.elapsed().as_secs_f64());
+                        print!("\rWork timer paused at {:.2?}", work_time_left);
                          // failure to pause printed time problem is here
                         if *timer.status.lock().unwrap() == Status::Active {
-                           
+                            elapsed = Instant::now();
                             break;
                         } 
                     }
