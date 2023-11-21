@@ -47,13 +47,15 @@ impl WorkTimer {
             };
             let mut elapsed = Instant::now();
             let mut work_time_left = timer.worktime.clone();
-            println!("{:?}", work_time_left);
+            let mut pause_elapsed = 0.0;
             while work_time_left > 0.0 { // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
                 if *timer.status.lock().unwrap() == Status::Active {
 
                     stdout().flush().unwrap();
-                    print!("\rWork time left {:.2?}", timer.worktime -  elapsed.elapsed().as_secs_f64());
+                    work_time_left = timer.worktime -  elapsed.elapsed().as_secs_f64() - pause_elapsed;
+                    print!("\rWork time left {:.2?}", work_time_left);
                 } else if *timer.status.lock().unwrap() == Status::Pause {
+                    pause_elapsed = pause_elapsed + elapsed.elapsed().as_secs_f64();
                     loop {
                        
                         stdout().flush().unwrap();
@@ -94,30 +96,30 @@ impl BreakTimer {
         breaktime,
         status,
         };
-        let elapsed = Instant::now();
+        let mut elapsed = Instant::now();
+        let mut break_time_left = timer.worktime.clone();
+        let mut pause_elapsed = 0.0;
 
-        while elapsed.elapsed().as_secs_f64() < timer.breaktime {
-
+        while break_time_left > 0.0 { // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
             if *timer.status.lock().unwrap() == Status::Active {
 
                 stdout().flush().unwrap();
-                print!("\rBreak time left {:.2?}", timer.breaktime -  elapsed.elapsed().as_secs_f64());
-            
-            
+                break_time_left = timer.breaktime -  elapsed.elapsed().as_secs_f64() - pause_elapsed;
+                print!("\rBreak time left {:.2?}", break_time_left);
             } else if *timer.status.lock().unwrap() == Status::Pause {
-
-                
-
+                pause_elapsed = pause_elapsed + elapsed.elapsed().as_secs_f64();
                 loop {
+                   
                     stdout().flush().unwrap();
-                    print!("\rBreak timer paused at {:.2?}", timer.breaktime - elapsed.elapsed().as_secs_f64());
-                        // failure to pause printed time problem is here
+                    print!("\rBreak timer paused at {:.2?}", break_time_left);
+                     // failure to pause printed time problem is here
                     if *timer.status.lock().unwrap() == Status::Active {
-                        
+                        elapsed = Instant::now();
                         break;
                     } 
                 }
-            };
+            }
+            
         };
 
         Some(timer)
