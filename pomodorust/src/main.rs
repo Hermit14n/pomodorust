@@ -6,8 +6,8 @@ use std::thread;
 
 
 fn main() {
-    let mut worktime = 8.0;
-    let mut breaktime = 10.0;
+    let mut worktime: f64 = 8.0;
+    let mut breaktime: f64 = 10.0;
     let mut rounds: i32 = 10;
     let status = Arc::new(Mutex::new(Status::Active));
 
@@ -22,7 +22,7 @@ fn main() {
         ).value_parser(clap::value_parser!(f64)))
         .arg(arg!(
             -r --rounds <i32> ... "Add number of work/break rounds"
-        ).value_parser(clap::value_parser!(i32)))
+        ).value_parser(clap::value_parser!(u32)))
         .get_matches();
     
     if let Some(cli_worktime) = matches.get_one::<f64>("worktime") {
@@ -64,7 +64,8 @@ fn main() {
 
         buffer = buffer.trim().to_string();
 
-        if buffer == "c" {
+        if buffer == "c" && *status.lock().unwrap() != Status::Active {
+            *status.lock().unwrap() = Status::Active;
             continue;
         } else if buffer == "p"{
             *status.lock().unwrap() = Status::Pause;
