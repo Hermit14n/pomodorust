@@ -22,7 +22,6 @@ impl Timer {
         BreakTimer::start_timer(self.worktime, self.breaktime, self.status)
         
     }
-
     pub fn start_work(self) -> Option<WorkTimer> { // start work consumes BreakTimer and returns a Worktimer
         WorkTimer::start_timer(self.worktime, self.breaktime, self.status)
         
@@ -138,16 +137,6 @@ pub enum Status {
     Stop,
     Active,
 }
-
-
-
-
-
-
-
-
-
-
 
 
 #[cfg(test)]
