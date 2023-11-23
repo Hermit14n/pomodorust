@@ -1,11 +1,33 @@
 use pomodorust::{BreakTimer, WorkTimer, Timer, Status};
 use clap::{arg, command};
-use std::io;
+use std::io::{stdout, stdin, Write};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
+use crossterm::{
+    execute,
+    style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
+    ExecutableCommand,
+    event
+};
 
 
-fn main() {
+fn main() -> std::io::Result<()> {
+
+    execute!(
+        stdout(),
+        SetForegroundColor(Color::Blue),
+        SetBackgroundColor(Color::Red),
+        Print("Styled text here."),
+        ResetColor
+    )?;
+
+    // or using functions
+    stdout()
+        .execute(SetForegroundColor(Color::Blue))?
+        .execute(SetBackgroundColor(Color::Red))?
+        .execute(Print("Styled text here."))?
+        .execute(ResetColor)?;
+
     let mut worktime: f64 = 8.0;
     let mut breaktime: f64 = 10.0;
     let mut rounds: i32 = 10;
@@ -58,7 +80,7 @@ fn main() {
         println!("Press [p] to pause, [c] to continue, [e] to exit");
 
         let mut buffer = String::new();
-        io::stdin()
+        stdin()
             .read_line(&mut buffer)
             .expect("Enter valid input");
 
@@ -86,6 +108,7 @@ fn main() {
         // separate worker thread            Done
         // progress bar yes/no   -p <bool>
         // pretty view           -v <bool>
+    Ok(())
 }
 
 
