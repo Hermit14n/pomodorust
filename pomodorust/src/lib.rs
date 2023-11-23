@@ -11,21 +11,21 @@ pub struct Timer {
 }
 impl Timer {
     pub fn new_timer( worktime: f64, breaktime:  f64, status: Arc<Mutex<Status>>) -> Timer {
-        let timer = Timer {
+        Timer {
         worktime,
         breaktime,
         status,
-        };
-        timer
+        }
+        
     }
     pub fn start_break(self) -> Option<BreakTimer> { // Start break consumes WorkTimer and creates a BreakTimer
-        let timer = BreakTimer::start_timer(self.worktime, self.breaktime, self.status);
-        timer
+        BreakTimer::start_timer(self.worktime, self.breaktime, self.status)
+        
     }
 
     pub fn start_work(self) -> Option<WorkTimer> { // start work consumes BreakTimer and returns a Worktimer
-        let timer = WorkTimer::start_timer(self.worktime, self.breaktime, self.status);
-        timer
+        WorkTimer::start_timer(self.worktime, self.breaktime, self.status)
+        
     }
 }
 
@@ -46,7 +46,7 @@ impl WorkTimer {
             status,
             };
             let mut elapsed = Instant::now();
-            let mut work_time_left = timer.worktime.clone();
+            let mut work_time_left = timer.worktime;
             let mut pause_elapsed = 0.0;
             while work_time_left > 0.0 { // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
                 if *timer.status.lock().unwrap() == Status::Active {
@@ -55,7 +55,7 @@ impl WorkTimer {
                     work_time_left = timer.worktime -  elapsed.elapsed().as_secs_f64() - pause_elapsed;
                     print!("\rWork time left {:.2?}", work_time_left);
                 } else if *timer.status.lock().unwrap() == Status::Pause {
-                    pause_elapsed = pause_elapsed + elapsed.elapsed().as_secs_f64();
+                    pause_elapsed += elapsed.elapsed().as_secs_f64();
                     loop {
                        
                         stdout().flush().unwrap();
@@ -75,8 +75,8 @@ impl WorkTimer {
     }
 
     pub fn start_break(self) -> Option<BreakTimer> { // Start break consumes WorkTimer and creates a BreakTimer
-        let timer = BreakTimer::start_timer(self.worktime, self.breaktime, self.status);
-        timer
+        BreakTimer::start_timer(self.worktime, self.breaktime, self.status)
+        
     }
 
     
@@ -97,7 +97,7 @@ impl BreakTimer {
         status,
         };
         let mut elapsed = Instant::now();
-        let mut break_time_left = timer.worktime.clone();
+        let mut break_time_left = timer.worktime;
         let mut pause_elapsed = 0.0;
 
         while break_time_left > 0.0 { // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
@@ -107,7 +107,7 @@ impl BreakTimer {
                 break_time_left = timer.breaktime -  elapsed.elapsed().as_secs_f64() - pause_elapsed;
                 print!("\rBreak time left {:.2?}", break_time_left);
             } else if *timer.status.lock().unwrap() == Status::Pause {
-                pause_elapsed = pause_elapsed + elapsed.elapsed().as_secs_f64();
+                pause_elapsed += elapsed.elapsed().as_secs_f64();
                 loop {
                    
                     stdout().flush().unwrap();
@@ -126,8 +126,8 @@ impl BreakTimer {
 
     }
     pub fn start_work(self) -> Option<WorkTimer> { // start work consumes BreakTimer and returns a Worktimer
-        let timer = WorkTimer::start_timer(self.worktime, self.breaktime, self.status);
-        timer
+        WorkTimer::start_timer(self.worktime, self.breaktime, self.status)
+        
     }
 }
 
