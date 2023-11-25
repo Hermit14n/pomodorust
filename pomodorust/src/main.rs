@@ -104,21 +104,24 @@ fn main() -> std::io::Result<()> {
     let mut stdout = stdout();
     execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
     loop {
-        
         for y in 0..21 {
             for x in 0..61 {
                 if y == 9 && x == 5 {
                     queue!(
                         stdout,
+                        
                         cursor::MoveTo(x, y),
                         style::PrintStyledContent("Status: ".dark_cyan()),
                         style::Print(state.lock().unwrap().to_string()),
+                        terminal::Clear(terminal::ClearType::UntilNewLine),
+
                     )?;
                 } else if y == 10 && x == 5 {
                     queue!(
                         stdout,
                         cursor::MoveTo(x, y),
                         style::PrintStyledContent("Time Left: ".dark_cyan()),
+                        terminal::Clear(terminal::ClearType::UntilNewLine),
                         style::PrintStyledContent((*time_left.lock().unwrap().to_string()).white()),
                     )?;
                 } else if y == 11 && x == 5 {
@@ -128,6 +131,8 @@ fn main() -> std::io::Result<()> {
                         style::PrintStyledContent(
                             "Press [p] to pause, [c] to continue, [e] to exit".dark_cyan()
                         ),
+                        terminal::Clear(terminal::ClearType::UntilNewLine),
+
                     )?;
                 } 
                 if (y == 0 || y == 21 - 1) || (x == 0 || x == 61 - 1) {
@@ -138,7 +143,15 @@ fn main() -> std::io::Result<()> {
                         cursor::MoveTo(x, y),
                         style::PrintStyledContent("█".dark_cyan()),
                         cursor::Hide,
+                        //terminal::Clear(terminal::ClearType::UntilNewLine),
+
                     )?;
+                    if x == 60 || y == 21{
+                        queue!(
+                            stdout,
+                            terminal::Clear(terminal::ClearType::UntilNewLine),
+                        )?;
+                    }
                 } 
             }
             
