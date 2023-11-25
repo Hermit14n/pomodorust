@@ -100,10 +100,9 @@ fn main() -> std::io::Result<()> {
     });
    // handle1.join().expect("Input join panicked");
     //------------Input Thread End-----------------//
-
+    let mut stdout = stdout();
+    execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
     loop {
-        let mut stdout = stdout();
-        execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
 
         for y in 0..21 {
             for x in 0..61 {
@@ -141,9 +140,9 @@ fn main() -> std::io::Result<()> {
                 }
             }
         }
+        
         stdout.flush()?;
     }
-    //println!("Press [p] to pause, [c] to continue, [e] to exit");
 
     handle.join().expect("Thread panicked"); // termination of the main thread will also
                                              // terminate child thread, join keeps

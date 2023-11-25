@@ -82,13 +82,11 @@ impl WorkTimer {
         while *timer.time_left.lock().unwrap() > 0.0 {
             // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
             if *timer.status.lock().unwrap() == Status::Active {
-                stdout().flush().unwrap();
                 *timer.time_left.lock().unwrap() =
                     timer.worktime - elapsed.elapsed().as_secs_f64() - pause_elapsed;
             } else if *timer.status.lock().unwrap() == Status::Pause {
                 pause_elapsed += elapsed.elapsed().as_secs_f64();
                 loop {
-                    stdout().flush().unwrap();
                     // failure to pause printed time problem is here
                     if *timer.status.lock().unwrap() == Status::Active {
                         elapsed = Instant::now();
@@ -145,13 +143,11 @@ impl BreakTimer {
         while *timer.time_left.lock().unwrap() > 0.0 {
             // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
             if *timer.status.lock().unwrap() == Status::Active {
-                //stdout().flush().unwrap();
                 *timer.time_left.lock().unwrap() =
                     timer.breaktime - elapsed.elapsed().as_secs_f64() - pause_elapsed;
             } else if *timer.status.lock().unwrap() == Status::Pause {
                 pause_elapsed += elapsed.elapsed().as_secs_f64();
                 loop {
-                    stdout().flush().unwrap();
 
                     // failure to pause printed time problem is here
                     if *timer.status.lock().unwrap() == Status::Active {
