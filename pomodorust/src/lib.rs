@@ -1,3 +1,4 @@
+use std::fmt;
 use std::io::{stdout, Write};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -7,22 +8,48 @@ pub struct Timer {
     worktime: f64,
     breaktime: f64,
     status: Arc<Mutex<Status>>,
+    state: Arc<Mutex<State>>,
+    time_left: Arc<Mutex<f64>>,
 }
 impl Timer {
-    pub fn new_timer(worktime: f64, breaktime: f64, status: Arc<Mutex<Status>>) -> Timer {
+    pub fn new_timer(
+        worktime: f64,
+        breaktime: f64,
+        status: Arc<Mutex<Status>>,
+        state: Arc<Mutex<State>>,
+        time_left: Arc<Mutex<f64>>,
+    ) -> Timer {
         Timer {
             worktime,
             breaktime,
             status,
+            state,
+            time_left,
         }
     }
     pub fn start_break(self) -> Option<BreakTimer> {
         // Start break consumes WorkTimer and creates a BreakTimer
-        BreakTimer::start_timer(self.worktime, self.breaktime, self.status)
+        *self.state.lock().unwrap() = State::Break;
+        *self.time_left.lock().unwrap() = self.breaktime.clone();
+        BreakTimer::start_timer(
+            self.worktime,
+            self.breaktime,
+            self.status,
+            self.state,
+            self.time_left,
+        )
     }
     pub fn start_work(self) -> Option<WorkTimer> {
         // start work consumes BreakTimer and returns a Worktimer
-        WorkTimer::start_timer(self.worktime, self.breaktime, self.status)
+        *self.state.lock().unwrap() = State::Work;
+        *self.time_left.lock().unwrap() = self.worktime.clone();
+        WorkTimer::start_timer(
+            self.worktime,
+            self.breaktime,
+            self.status,
+            self.state,
+            self.time_left,
+        )
     }
 }
 
@@ -31,6 +58,8 @@ pub struct WorkTimer {
     worktime: f64,
     breaktime: f64,
     status: Arc<Mutex<Status>>,
+    state: Arc<Mutex<State>>,
+    time_left: Arc<Mutex<f64>>,
 }
 
 impl WorkTimer {
@@ -38,26 +67,28 @@ impl WorkTimer {
         worktime: f64,
         breaktime: f64,
         status: Arc<Mutex<Status>>,
+        state: Arc<Mutex<State>>,
+        time_left: Arc<Mutex<f64>>,
     ) -> Option<WorkTimer> {
         let timer = WorkTimer {
             worktime,
             breaktime,
             status,
+            state,
+            time_left,
         };
         let mut elapsed = Instant::now();
-        let mut work_time_left = timer.worktime;
         let mut pause_elapsed = 0.0;
-        while work_time_left > 0.0 {
+        while *timer.time_left.lock().unwrap() > 0.0 {
             // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
             if *timer.status.lock().unwrap() == Status::Active {
                 stdout().flush().unwrap();
-                work_time_left = timer.worktime - elapsed.elapsed().as_secs_f64() - pause_elapsed;
-                print!("\rWork time left {:.2?}", work_time_left);
+                *timer.time_left.lock().unwrap() =
+                    timer.worktime - elapsed.elapsed().as_secs_f64() - pause_elapsed;
             } else if *timer.status.lock().unwrap() == Status::Pause {
                 pause_elapsed += elapsed.elapsed().as_secs_f64();
                 loop {
                     stdout().flush().unwrap();
-                    print!("\rWork timer paused at {:.2?}", work_time_left);
                     // failure to pause printed time problem is here
                     if *timer.status.lock().unwrap() == Status::Active {
                         elapsed = Instant::now();
@@ -72,7 +103,15 @@ impl WorkTimer {
 
     pub fn start_break(self) -> Option<BreakTimer> {
         // Start break consumes WorkTimer and creates a BreakTimer
-        BreakTimer::start_timer(self.worktime, self.breaktime, self.status)
+        *self.state.lock().unwrap() = State::Break;
+        *self.time_left.lock().unwrap() = self.breaktime.clone();
+        BreakTimer::start_timer(
+            self.worktime,
+            self.breaktime,
+            self.status,
+            self.state,
+            self.time_left,
+        )
     }
 }
 
@@ -81,6 +120,8 @@ pub struct BreakTimer {
     worktime: f64,
     breaktime: f64,
     status: Arc<Mutex<Status>>,
+    state: Arc<Mutex<State>>,
+    time_left: Arc<Mutex<f64>>,
 }
 
 impl BreakTimer {
@@ -88,27 +129,30 @@ impl BreakTimer {
         worktime: f64,
         breaktime: f64,
         status: Arc<Mutex<Status>>,
+        state: Arc<Mutex<State>>,
+        time_left: Arc<Mutex<f64>>,
     ) -> Option<BreakTimer> {
         let timer = BreakTimer {
             worktime,
             breaktime,
             status,
+            state,
+            time_left,
         };
         let mut elapsed = Instant::now();
-        let mut break_time_left = timer.worktime;
         let mut pause_elapsed = 0.0;
 
-        while break_time_left > 0.0 {
+        while *timer.time_left.lock().unwrap() > 0.0 {
             // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
             if *timer.status.lock().unwrap() == Status::Active {
-                stdout().flush().unwrap();
-                break_time_left = timer.breaktime - elapsed.elapsed().as_secs_f64() - pause_elapsed;
-                print!("\rBreak time left {:.2?}", break_time_left);
+                //stdout().flush().unwrap();
+                *timer.time_left.lock().unwrap() =
+                    timer.breaktime - elapsed.elapsed().as_secs_f64() - pause_elapsed;
             } else if *timer.status.lock().unwrap() == Status::Pause {
                 pause_elapsed += elapsed.elapsed().as_secs_f64();
                 loop {
                     stdout().flush().unwrap();
-                    print!("\rBreak timer paused at {:.2?}", break_time_left);
+
                     // failure to pause printed time problem is here
                     if *timer.status.lock().unwrap() == Status::Active {
                         elapsed = Instant::now();
@@ -121,8 +165,16 @@ impl BreakTimer {
         Some(timer)
     }
     pub fn start_work(self) -> Option<WorkTimer> {
+        *self.state.lock().unwrap() = State::Work;
+        *self.time_left.lock().unwrap() = self.worktime.clone();
         // start work consumes BreakTimer and returns a Worktimer
-        WorkTimer::start_timer(self.worktime, self.breaktime, self.status)
+        WorkTimer::start_timer(
+            self.worktime,
+            self.breaktime,
+            self.status,
+            self.state,
+            self.time_left,
+        )
     }
 }
 
@@ -132,6 +184,23 @@ pub enum Status {
     Reset,
     Stop,
     Active,
+}
+
+#[derive(Debug)]
+pub enum State {
+    Work,
+    Break,
+    Stopped,
+}
+
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            State::Work => write!(f, "Work"),
+            State::Break => write!(f, "Break"),
+            State::Stopped => write!(f, "Stopped"),
+        }
+    }
 }
 
 #[cfg(test)]

@@ -1,36 +1,24 @@
 use clap::{arg, command};
 use crossterm::{
-    event, execute,
-    style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
-    ExecutableCommand,
+    cursor, event, execute, queue,
+    style::{self, Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor, Stylize},
+    terminal, ExecutableCommand,
 };
-use pomodorust::{BreakTimer, Status, Timer, WorkTimer};
+use pomodorust::{BreakTimer, State, Status, Timer, WorkTimer};
 use std::io::{stdin, stdout, Write};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
 fn main() -> std::io::Result<()> {
-    execute!(
-        stdout(),
-        SetForegroundColor(Color::Blue),
-        SetBackgroundColor(Color::Red),
-        Print("Styled text here."),
-        ResetColor
-    )?;
-
-    // or using functions
-    stdout()
-        .execute(SetForegroundColor(Color::Blue))?
-        .execute(SetBackgroundColor(Color::Red))?
-        .execute(Print("Styled text here."))?
-        .execute(ResetColor)?;
-
     let mut worktime: f64 = 8.0;
     let mut breaktime: f64 = 10.0;
     let mut rounds: i32 = 10;
     let status = Arc::new(Mutex::new(Status::Active));
+    let state: Arc<Mutex<State>> = Arc::new(Mutex::new(State::Stopped));
+    let time_left: Arc<Mutex<f64>> = Arc::new(Mutex::new(0.0));
 
     let (tx, _rx) = mpsc::channel();
+    let (tx1, rx1) = mpsc::channel();
 
     let matches = command!()
         .arg(
@@ -66,8 +54,16 @@ fn main() -> std::io::Result<()> {
     }
 
     //------------Worker Thread init----------------//
-    let timer = Timer::new_timer(worktime, breaktime, Arc::clone(&status));
+    let timer = Timer::new_timer(
+        worktime,
+        breaktime,
+        Arc::clone(&status),
+        Arc::clone(&state),
+        Arc::clone(&time_left),
+    );
     let handle = thread::spawn(move || {
+        // is this actually multithreading?
+        // do I need recv?
         let _worktimer = timer.start_work().unwrap();
         tx.send(_worktimer.clone())
             .expect("Problem with channel to worker thread");
@@ -82,23 +78,72 @@ fn main() -> std::io::Result<()> {
         }
     });
     //------------Worker Thread end-----------------//
-    loop {
-        println!("Press [p] to pause, [c] to continue, [e] to exit");
 
-        let mut buffer = String::new();
-        stdin().read_line(&mut buffer).expect("Enter valid input");
+    //------------Input Thread Begin-----------------//
+    let handle1 = std::thread::spawn(move || {
+        tx1.send(status.clone()).expect("Input thread panicked");
+        loop {
+            let mut buffer = String::new();
+            stdin().read_line(&mut buffer).expect("Enter valid input");
 
-        buffer = buffer.trim().to_string();
+            buffer = buffer.trim().to_string();
 
-        if buffer == "c" && *status.lock().unwrap() != Status::Active {
-            *status.lock().unwrap() = Status::Active;
-            continue;
-        } else if buffer == "p" {
-            *status.lock().unwrap() = Status::Pause;
-        } else if buffer == "e" {
-            break;
+            if buffer == "c" && *status.lock().unwrap() != Status::Active {
+                *status.lock().unwrap() = Status::Active;
+                continue;
+            } else if buffer == "p" {
+                *status.lock().unwrap() = Status::Pause;
+            } else if buffer == "e" {
+                break;
+            }
         }
+    });
+   // handle1.join().expect("Input join panicked");
+    //------------Input Thread End-----------------//
+
+    loop {
+        let mut stdout = stdout();
+        execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
+
+        for y in 0..21 {
+            for x in 0..61 {
+                if y == 9 && x == 5 {
+                    queue!(
+                        stdout,
+                        cursor::MoveTo(x, y),
+                        style::PrintStyledContent("Status: ".magenta()),
+                        style::Print(&*state.lock().unwrap().to_string()),
+                    )?;
+                } else if y == 10 && x == 5 {
+                    queue!(
+                        stdout,
+                        cursor::MoveTo(x, y),
+                        style::PrintStyledContent("Time Left: ".magenta()),
+                        style::PrintStyledContent((*time_left.lock().unwrap().to_string()).white()),
+                    )?;
+                } else if y == 11 && x == 5 {
+                    queue!(
+                        stdout,
+                        cursor::MoveTo(x, y),
+                        style::PrintStyledContent(
+                            "Press [p] to pause, [c] to continue, [e] to exit".magenta()
+                        ),
+                    )?;
+                }
+                if (y == 0 || y == 21 - 1) || (x == 0 || x == 61 - 1) {
+                    // in this loop we are more efficient by not flushing the buffer.
+
+                    queue!(
+                        stdout,
+                        cursor::MoveTo(x, y),
+                        style::PrintStyledContent("█".magenta())
+                    )?;
+                }
+            }
+        }
+        stdout.flush()?;
     }
+    //println!("Press [p] to pause, [c] to continue, [e] to exit");
 
     handle.join().expect("Thread panicked"); // termination of the main thread will also
                                              // terminate child thread, join keeps
