@@ -96,6 +96,7 @@ fn main() -> std::io::Result<()> {
             } else if buffer == "e" {
                 break;
             }
+            
         }
     });
    // handle1.join().expect("Input join panicked");
@@ -103,21 +104,21 @@ fn main() -> std::io::Result<()> {
     let mut stdout = stdout();
     execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
     loop {
-
+        
         for y in 0..21 {
             for x in 0..61 {
                 if y == 9 && x == 5 {
                     queue!(
                         stdout,
                         cursor::MoveTo(x, y),
-                        style::PrintStyledContent("Status: ".magenta()),
-                        style::Print(&*state.lock().unwrap().to_string()),
+                        style::PrintStyledContent("Status: ".dark_cyan()),
+                        style::Print(state.lock().unwrap().to_string()),
                     )?;
                 } else if y == 10 && x == 5 {
                     queue!(
                         stdout,
                         cursor::MoveTo(x, y),
-                        style::PrintStyledContent("Time Left: ".magenta()),
+                        style::PrintStyledContent("Time Left: ".dark_cyan()),
                         style::PrintStyledContent((*time_left.lock().unwrap().to_string()).white()),
                     )?;
                 } else if y == 11 && x == 5 {
@@ -125,23 +126,28 @@ fn main() -> std::io::Result<()> {
                         stdout,
                         cursor::MoveTo(x, y),
                         style::PrintStyledContent(
-                            "Press [p] to pause, [c] to continue, [e] to exit".magenta()
+                            "Press [p] to pause, [c] to continue, [e] to exit".dark_cyan()
                         ),
                     )?;
-                }
+                } 
                 if (y == 0 || y == 21 - 1) || (x == 0 || x == 61 - 1) {
                     // in this loop we are more efficient by not flushing the buffer.
 
                     queue!(
                         stdout,
                         cursor::MoveTo(x, y),
-                        style::PrintStyledContent("█".magenta())
+                        style::PrintStyledContent("█".dark_cyan()),
+                        cursor::Hide,
                     )?;
-                }
+                } 
             }
+            
         }
-        
+
         stdout.flush()?;
+
+        
+
     }
 
     handle.join().expect("Thread panicked"); // termination of the main thread will also
