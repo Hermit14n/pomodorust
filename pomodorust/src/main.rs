@@ -2,7 +2,7 @@ use clap::{arg, command};
 use crossterm::{
     cursor, execute, queue,
     style::{self, Stylize},
-    terminal, 
+    terminal,
 };
 use pomodorust::{BreakTimer, State, Status, Timer, WorkTimer};
 use std::io::{stdin, stdout, Write};
@@ -62,14 +62,13 @@ fn main() -> std::io::Result<()> {
         Arc::clone(&time_left),
     );
     thread::spawn(move || {
-
         let _worktimer = timer.start_work().unwrap();
-        
+
         loop {
             rounds -= 1;
-            match rx1.try_recv(){
+            match rx1.try_recv() {
                 Ok(_) => break,
-                Err(_) => {},
+                Err(_) => {}
             }
             if rounds == 0 {
                 break;
@@ -81,29 +80,27 @@ fn main() -> std::io::Result<()> {
     //------------Worker Thread end-----------------//
 
     //------------Input Thread Begin-----------------//
-     std::thread::spawn(move || {
-        
-        loop {
-            let mut buffer = String::new();
-            stdin().read_line(&mut buffer).expect("Enter valid input");
+    std::thread::spawn(move || loop {
+        let mut buffer = String::new();
+        stdin().read_line(&mut buffer).expect("Enter valid input");
 
-            buffer = buffer.trim().to_string();
+        buffer = buffer.trim().to_string();
 
-            if buffer == "c" && *status.lock().unwrap() != Status::Active {
-                *status.lock().unwrap() = Status::Active;
-                continue;
-            } else if buffer == "p" {
-                *status.lock().unwrap() = Status::Pause;
-            } else if buffer == "e" {
-                let _ = tx.send(());
-                let _ = tx1.send(());
-                break;
-            }
+        if buffer == "c" && *status.lock().unwrap() != Status::Active {
+            *status.lock().unwrap() = Status::Active;
+            continue;
+        } else if buffer == "p" {
+            *status.lock().unwrap() = Status::Pause;
+        } else if buffer == "e" {
+            let _ = tx.send(());
+            let _ = tx1.send(());
+            break;
         }
     });
-    
+
     //------------Input Thread End-----------------//
     let mut stdout = stdout();
+    execute!(stdout, cursor::SavePosition)?;
     execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
     loop {
         for y in 0..21 {
@@ -149,18 +146,14 @@ fn main() -> std::io::Result<()> {
             style::PrintStyledContent("█".dark_cyan()),
             cursor::Hide,
         )?;
-        
-        match rx.try_recv(){
+
+        match rx.try_recv() {
             Ok(_) => break,
-            Err(_) => {},
+            Err(_) => {}
         }
 
         stdout.flush()?;
     }
-
-    //handle.join().expect("Thread panicked"); // termination of the main thread will also
-                                             // terminate child thread, join keeps
-                                             // main in scope so child thread can run
 
     // Want to accept args               Done
     // work time             -w <f64>    Done
@@ -170,5 +163,6 @@ fn main() -> std::io::Result<()> {
     // progress bar yes/no   -p <bool>
     // pretty view           -v <bool>
     execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
+    execute!(stdout, cursor::RestorePosition)?;
     Ok(())
 }
