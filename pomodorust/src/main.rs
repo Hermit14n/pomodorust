@@ -17,8 +17,8 @@ fn main() -> std::io::Result<()> {
     let state: Arc<Mutex<State>> = Arc::new(Mutex::new(State::Stopped));
     let time_left: Arc<Mutex<f64>> = Arc::new(Mutex::new(0.0));
 
-    //let (tx, _rx) = mpsc::channel();
-    //let (tx1, rx1) = mpsc::channel();
+    let (tx, rx) = mpsc::channel();
+    let (tx1, rx1) = mpsc::channel();
 
     let matches = command!()
         .arg(
@@ -67,6 +67,10 @@ fn main() -> std::io::Result<()> {
         
         loop {
             rounds -= 1;
+            match rx1.try_recv(){
+                Ok(_) => break,
+                Err(_) => {},
+            }
             if rounds == 0 {
                 break;
             }
@@ -78,6 +82,7 @@ fn main() -> std::io::Result<()> {
 
     //------------Input Thread Begin-----------------//
      std::thread::spawn(move || {
+        
         loop {
             let mut buffer = String::new();
             stdin().read_line(&mut buffer).expect("Enter valid input");
@@ -90,6 +95,8 @@ fn main() -> std::io::Result<()> {
             } else if buffer == "p" {
                 *status.lock().unwrap() = Status::Pause;
             } else if buffer == "e" {
+                let _ = tx.send(());
+                let _ = tx1.send(());
                 break;
             }
         }
@@ -142,11 +149,16 @@ fn main() -> std::io::Result<()> {
             style::PrintStyledContent("█".dark_cyan()),
             cursor::Hide,
         )?;
+        
+        match rx.try_recv(){
+            Ok(_) => break,
+            Err(_) => {},
+        }
 
         stdout.flush()?;
     }
 
-   // handle.join().expect("Thread panicked"); // termination of the main thread will also
+    //handle.join().expect("Thread panicked"); // termination of the main thread will also
                                              // terminate child thread, join keeps
                                              // main in scope so child thread can run
 
@@ -157,5 +169,6 @@ fn main() -> std::io::Result<()> {
     // separate worker thread            Done
     // progress bar yes/no   -p <bool>
     // pretty view           -v <bool>
+    execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
     Ok(())
 }
