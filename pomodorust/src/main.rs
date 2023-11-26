@@ -1,8 +1,8 @@
 use clap::{arg, command};
 use crossterm::{
-    cursor, event, execute, queue,
-    style::{self, Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor, Stylize},
-    terminal, ExecutableCommand,
+    cursor, execute, queue,
+    style::{self, Stylize},
+    terminal, 
 };
 use pomodorust::{BreakTimer, State, Status, Timer, WorkTimer};
 use std::io::{stdin, stdout, Write};
@@ -17,8 +17,8 @@ fn main() -> std::io::Result<()> {
     let state: Arc<Mutex<State>> = Arc::new(Mutex::new(State::Stopped));
     let time_left: Arc<Mutex<f64>> = Arc::new(Mutex::new(0.0));
 
-    let (tx, _rx) = mpsc::channel();
-    let (tx1, rx1) = mpsc::channel();
+    //let (tx, _rx) = mpsc::channel();
+    //let (tx1, rx1) = mpsc::channel();
 
     let matches = command!()
         .arg(
@@ -61,13 +61,10 @@ fn main() -> std::io::Result<()> {
         Arc::clone(&state),
         Arc::clone(&time_left),
     );
-    let handle = thread::spawn(move || {
-        // is this actually multithreading?
-        // do I need recv?
-        let _worktimer = timer.start_work().unwrap();
-        tx.send(_worktimer.clone())
-            .expect("Problem with channel to worker thread");
+    thread::spawn(move || {
 
+        let _worktimer = timer.start_work().unwrap();
+        
         loop {
             rounds -= 1;
             if rounds == 0 {
@@ -80,10 +77,8 @@ fn main() -> std::io::Result<()> {
     //------------Worker Thread end-----------------//
 
     //------------Input Thread Begin-----------------//
-    let handle1 = std::thread::spawn(move || {
-        tx1.send(status.clone()).expect("Input thread panicked");
+     std::thread::spawn(move || {
         loop {
-            
             let mut buffer = String::new();
             stdin().read_line(&mut buffer).expect("Enter valid input");
 
@@ -97,17 +92,15 @@ fn main() -> std::io::Result<()> {
             } else if buffer == "e" {
                 break;
             }
-            
         }
     });
-   // handle1.join().expect("Input join panicked");
+    
     //------------Input Thread End-----------------//
     let mut stdout = stdout();
     execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
     loop {
         for y in 0..21 {
             for x in 0..61 {
-                 
                 if (y == 0 || y == 21 - 1) || (x == 0 || x == 61 - 1) {
                     // in this loop we are more efficient by not flushing the buffer.
 
@@ -117,59 +110,43 @@ fn main() -> std::io::Result<()> {
                         style::PrintStyledContent("█".dark_cyan()),
                         cursor::Hide,
                         //terminal::Clear(terminal::ClearType::UntilNewLine),
-
                     )?;
-                    if x == 60 || (y > 11 && y < 20) || y > 20{
-                        queue!(
-                            stdout,
-                            terminal::Clear(terminal::ClearType::UntilNewLine),
-                        )?;
+                    if x == 60 || (y > 11 && y < 20) || y > 20 {
+                        queue!(stdout, terminal::Clear(terminal::ClearType::UntilNewLine),)?;
                     }
-                } 
+                }
             }
-            
         }
-            queue!(
-                stdout,
-                
-                cursor::MoveTo(5, 9),
-                style::PrintStyledContent("Status: ".dark_cyan()),
-                style::Print(state.lock().unwrap().to_string()),
-                terminal::Clear(terminal::ClearType::UntilNewLine),
-                cursor::MoveTo(60, 9),
-                style::PrintStyledContent("█".dark_cyan()),
-                cursor::Hide,
-                
-                cursor::MoveTo(5, 10),
-                style::PrintStyledContent("Time Left: ".dark_cyan()),
-                terminal::Clear(terminal::ClearType::UntilNewLine),
-                style::PrintStyledContent((*time_left.lock().unwrap().to_string()).white()),
-                cursor::MoveTo(60, 10),
-                style::PrintStyledContent("█".dark_cyan()),
-                cursor::Hide,
-
-                cursor::MoveTo(5, 11),
-                style::PrintStyledContent(
-                    "Press [p] to pause, [c] to continue, [e] to exit".dark_cyan()
-                ),
-                terminal::Clear(terminal::ClearType::UntilNewLine),
-                cursor::MoveTo(60, 11),
-                style::PrintStyledContent("█".dark_cyan()),
-                cursor::Hide,
-
-            )?;
-           
-     
-           
-        
+        queue!(
+            stdout,
+            cursor::MoveTo(5, 9),
+            style::PrintStyledContent("Status: ".dark_cyan()),
+            style::Print(state.lock().unwrap().to_string()),
+            terminal::Clear(terminal::ClearType::UntilNewLine),
+            cursor::MoveTo(60, 9),
+            style::PrintStyledContent("█".dark_cyan()),
+            cursor::Hide,
+            cursor::MoveTo(5, 10),
+            style::PrintStyledContent("Time Left: ".dark_cyan()),
+            terminal::Clear(terminal::ClearType::UntilNewLine),
+            style::PrintStyledContent((*time_left.lock().unwrap().to_string()).white()),
+            cursor::MoveTo(60, 10),
+            style::PrintStyledContent("█".dark_cyan()),
+            cursor::Hide,
+            cursor::MoveTo(5, 11),
+            style::PrintStyledContent(
+                "Press [p] to pause, [c] to continue, [e] to exit".dark_cyan()
+            ),
+            terminal::Clear(terminal::ClearType::UntilNewLine),
+            cursor::MoveTo(60, 11),
+            style::PrintStyledContent("█".dark_cyan()),
+            cursor::Hide,
+        )?;
 
         stdout.flush()?;
-
-        
-
     }
 
-    handle.join().expect("Thread panicked"); // termination of the main thread will also
+   // handle.join().expect("Thread panicked"); // termination of the main thread will also
                                              // terminate child thread, join keeps
                                              // main in scope so child thread can run
 
@@ -182,4 +159,3 @@ fn main() -> std::io::Result<()> {
     // pretty view           -v <bool>
     Ok(())
 }
-

@@ -148,7 +148,6 @@ impl BreakTimer {
             } else if *timer.status.lock().unwrap() == Status::Pause {
                 pause_elapsed += elapsed.elapsed().as_secs_f64();
                 loop {
-
                     // failure to pause printed time problem is here
                     if *timer.status.lock().unwrap() == Status::Active {
                         elapsed = Instant::now();
