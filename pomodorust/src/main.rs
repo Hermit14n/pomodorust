@@ -83,6 +83,7 @@ fn main() -> std::io::Result<()> {
     let handle1 = std::thread::spawn(move || {
         tx1.send(status.clone()).expect("Input thread panicked");
         loop {
+            
             let mut buffer = String::new();
             stdin().read_line(&mut buffer).expect("Enter valid input");
 
@@ -146,7 +147,7 @@ fn main() -> std::io::Result<()> {
                         //terminal::Clear(terminal::ClearType::UntilNewLine),
 
                     )?;
-                    if x == 60 || y == 21{
+                    if x == 60 || (y > 11 && y < 20) || y > 20{
                         queue!(
                             stdout,
                             terminal::Clear(terminal::ClearType::UntilNewLine),
