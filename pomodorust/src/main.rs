@@ -107,35 +107,7 @@ fn main() -> std::io::Result<()> {
     loop {
         for y in 0..21 {
             for x in 0..61 {
-                if y == 9 && x == 5 {
-                    queue!(
-                        stdout,
-                        
-                        cursor::MoveTo(x, y),
-                        style::PrintStyledContent("Status: ".dark_cyan()),
-                        style::Print(state.lock().unwrap().to_string()),
-                        terminal::Clear(terminal::ClearType::UntilNewLine),
-
-                    )?;
-                } else if y == 10 && x == 5 {
-                    queue!(
-                        stdout,
-                        cursor::MoveTo(x, y),
-                        style::PrintStyledContent("Time Left: ".dark_cyan()),
-                        terminal::Clear(terminal::ClearType::UntilNewLine),
-                        style::PrintStyledContent((*time_left.lock().unwrap().to_string()).white()),
-                    )?;
-                } else if y == 11 && x == 5 {
-                    queue!(
-                        stdout,
-                        cursor::MoveTo(x, y),
-                        style::PrintStyledContent(
-                            "Press [p] to pause, [c] to continue, [e] to exit".dark_cyan()
-                        ),
-                        terminal::Clear(terminal::ClearType::UntilNewLine),
-
-                    )?;
-                } 
+                 
                 if (y == 0 || y == 21 - 1) || (x == 0 || x == 61 - 1) {
                     // in this loop we are more efficient by not flushing the buffer.
 
@@ -157,6 +129,39 @@ fn main() -> std::io::Result<()> {
             }
             
         }
+            queue!(
+                stdout,
+                
+                cursor::MoveTo(5, 9),
+                style::PrintStyledContent("Status: ".dark_cyan()),
+                style::Print(state.lock().unwrap().to_string()),
+                terminal::Clear(terminal::ClearType::UntilNewLine),
+                cursor::MoveTo(60, 9),
+                style::PrintStyledContent("█".dark_cyan()),
+                cursor::Hide,
+                
+                cursor::MoveTo(5, 10),
+                style::PrintStyledContent("Time Left: ".dark_cyan()),
+                terminal::Clear(terminal::ClearType::UntilNewLine),
+                style::PrintStyledContent((*time_left.lock().unwrap().to_string()).white()),
+                cursor::MoveTo(60, 10),
+                style::PrintStyledContent("█".dark_cyan()),
+                cursor::Hide,
+
+                cursor::MoveTo(5, 11),
+                style::PrintStyledContent(
+                    "Press [p] to pause, [c] to continue, [e] to exit".dark_cyan()
+                ),
+                terminal::Clear(terminal::ClearType::UntilNewLine),
+                cursor::MoveTo(60, 11),
+                style::PrintStyledContent("█".dark_cyan()),
+                cursor::Hide,
+
+            )?;
+           
+     
+           
+        
 
         stdout.flush()?;
 
@@ -177,3 +182,4 @@ fn main() -> std::io::Result<()> {
     // pretty view           -v <bool>
     Ok(())
 }
+
