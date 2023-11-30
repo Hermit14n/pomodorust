@@ -1,1 +1,0 @@
-C:\Users\paulc\Documents\Projects\rust\projects\pomodorust\pomodorust\target\debug\pomodorust.exe: C:\Users\paulc\Documents\Projects\rust\projects\pomodorust\pomodorust\src\lib.rs C:\Users\paulc\Documents\Projects\rust\projects\pomodorust\pomodorust\src\main.rs
