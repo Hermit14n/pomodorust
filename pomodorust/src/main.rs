@@ -66,9 +66,8 @@ fn main() -> std::io::Result<()> {
 
         loop {
             rounds -= 1;
-            match rx1.try_recv() {
-                Ok(_) => break,
-                Err(_) => {}
+            if rx1.try_recv().is_ok() {
+                break;
             }
             if rounds == 0 {
                 break;
@@ -147,9 +146,8 @@ fn main() -> std::io::Result<()> {
             cursor::Hide,
         )?;
 
-        match rx.try_recv() {
-            Ok(_) => break,
-            Err(_) => {}
+        if rx.try_recv().is_ok() {
+            break;
         }
 
         stdout.flush()?;
@@ -161,7 +159,7 @@ fn main() -> std::io::Result<()> {
     // # rounds              -r <i32>    Done
     // separate worker thread            Done
     // progress bar yes/no   -p <bool>
-    // pretty view           -v <bool>
+    // pretty view           -v <bool>   Done, Default
     execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
     execute!(stdout, cursor::RestorePosition)?;
     Ok(())

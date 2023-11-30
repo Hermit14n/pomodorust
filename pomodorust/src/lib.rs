@@ -29,7 +29,7 @@ impl Timer {
     pub fn start_break(self) -> Option<BreakTimer> {
         // Start break consumes WorkTimer and creates a BreakTimer
         *self.state.lock().unwrap() = State::Break;
-        *self.time_left.lock().unwrap() = self.breaktime.clone();
+        *self.time_left.lock().unwrap() = self.breaktime;
         BreakTimer::start_timer(
             self.worktime,
             self.breaktime,
@@ -41,7 +41,7 @@ impl Timer {
     pub fn start_work(self) -> Option<WorkTimer> {
         // start work consumes BreakTimer and returns a Worktimer
         *self.state.lock().unwrap() = State::Work;
-        *self.time_left.lock().unwrap() = self.worktime.clone();
+        *self.time_left.lock().unwrap() = self.worktime;
         WorkTimer::start_timer(
             self.worktime,
             self.breaktime,
@@ -79,14 +79,12 @@ impl WorkTimer {
         let mut elapsed = Instant::now();
         let mut pause_elapsed = 0.0;
         while *timer.time_left.lock().unwrap() > 0.0 {
-            // TODO do this loop based on worktime_left > 0, use timers to subtract from worktime left
             if *timer.status.lock().unwrap() == Status::Active {
                 *timer.time_left.lock().unwrap() =
                     timer.worktime - elapsed.elapsed().as_secs_f64() - pause_elapsed;
             } else if *timer.status.lock().unwrap() == Status::Pause {
                 pause_elapsed += elapsed.elapsed().as_secs_f64();
                 loop {
-                    // failure to pause printed time problem is here
                     if *timer.status.lock().unwrap() == Status::Active {
                         elapsed = Instant::now();
                         break;
@@ -101,7 +99,7 @@ impl WorkTimer {
     pub fn start_break(self) -> Option<BreakTimer> {
         // Start break consumes WorkTimer and creates a BreakTimer
         *self.state.lock().unwrap() = State::Break;
-        *self.time_left.lock().unwrap() = self.breaktime.clone();
+        *self.time_left.lock().unwrap() = self.breaktime;
         BreakTimer::start_timer(
             self.worktime,
             self.breaktime,
@@ -160,7 +158,7 @@ impl BreakTimer {
     }
     pub fn start_work(self) -> Option<WorkTimer> {
         *self.state.lock().unwrap() = State::Work;
-        *self.time_left.lock().unwrap() = self.worktime.clone();
+        *self.time_left.lock().unwrap() = self.worktime;
         // start work consumes BreakTimer and returns a Worktimer
         WorkTimer::start_timer(
             self.worktime,
