@@ -1,7 +1,8 @@
 use clap::Parser;
 use crossterm::{cursor, execute, terminal};
+use crossterm::event::{read, Event, KeyCode, KeyEvent};
 use pomodorust::{BreakTimer, State, Status, Timer, WorkTimer};
-use std::io::{stdin, stdout};
+use std::io::stdout;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 mod args;
@@ -16,12 +17,10 @@ fn main() -> std::io::Result<()> {
 
     let (tx, rx) = mpsc::channel();
     let (tx1, rx1) = mpsc::channel();
+
     let args = TimerArgs::parse();
-
     let worktime = args.worktime * 60.0;
-
     let breaktime = args.breaktime * 60.0;
-
     let mut rounds = args.rounds;
 
     //------------Worker Thread init----------------//
@@ -52,7 +51,12 @@ fn main() -> std::io::Result<()> {
     //------------Input Thread Begin-----------------//
     std::thread::spawn(move || loop {
         let mut buffer = String::new();
-        stdin().read_line(&mut buffer).expect("Enter valid input");
+        match read() {
+            Ok(Event::Key(KeyEvent{code: KeyCode::Char('p'),..})) => buffer = String::from("p"),
+            Ok(Event::Key(KeyEvent{code: KeyCode::Char('c'),..})) => buffer = String::from("c"),
+            Ok(Event::Key(KeyEvent{code: KeyCode::Char('e'),..})) => buffer = String::from("e"),
+            _ => (),
+        };
 
         buffer = buffer.trim().to_string();
 
@@ -67,18 +71,11 @@ fn main() -> std::io::Result<()> {
             break;
         }
     });
-
     //------------Input Thread End-----------------//
+
     let mut stdout = stdout();
     tui(rx, &stdout, state, time_left)?;
-
-    // Want to accept args               Done
-    // work time             -w <f64>    Done
-    // break time            -b <f64>    Done
-    // # rounds              -r <i32>    Done
-    // separate worker thread            Done
     // progress bar yes/no   -p <bool>
-    // pretty view           -v <bool>   Done, Default
     execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
     execute!(stdout, cursor::RestorePosition)?;
     Ok(())

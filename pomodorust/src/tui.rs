@@ -5,9 +5,9 @@ use crossterm::{
     terminal,
 };
 use pomodorust::State;
+use std::io::{Stdout, Write};
 use std::sync::{Arc, Mutex};
 
-use std::io::{Stdout, Write};
 pub fn tui(
     rx: Receiver<()>,
     mut stdout: &Stdout,
@@ -29,7 +29,7 @@ pub fn tui(
                         cursor::Hide,
                         //terminal::Clear(terminal::ClearType::UntilNewLine),
                     )?;
-                    if x == 61 || (y > 0 && y< 5) || (y > 11 && y < 20) || y > 20 {
+                    if x == 61 || (y > 0 && y < 5) || (y > 11 && y < 20) || y > 20 {
                         queue!(stdout, terminal::Clear(terminal::ClearType::UntilNewLine))?;
                     }
                 }
