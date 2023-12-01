@@ -1,4 +1,4 @@
-use clap::{arg, command};
+use clap::Parser;
 use crossterm::{
     cursor, execute, queue,
     style::{self, Stylize},
@@ -8,50 +8,23 @@ use pomodorust::{BreakTimer, State, Status, Timer, WorkTimer};
 use std::io::{stdin, stdout, Write};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
+mod args;
+use crate::args::TimerArgs;
 
 fn main() -> std::io::Result<()> {
-    let mut worktime: f64 = 8.0;
-    let mut breaktime: f64 = 10.0;
-    let mut rounds: i32 = 10;
     let status = Arc::new(Mutex::new(Status::Active));
     let state: Arc<Mutex<State>> = Arc::new(Mutex::new(State::Stopped));
     let time_left: Arc<Mutex<f64>> = Arc::new(Mutex::new(0.0));
 
     let (tx, rx) = mpsc::channel();
     let (tx1, rx1) = mpsc::channel();
+    let args = TimerArgs::parse();
 
-    let matches = command!()
-        .arg(
-            arg!(
-                -w --worktime <f64>... "Add work length in minutes"
-            )
-            .value_parser(clap::value_parser!(f64)),
-        )
-        .arg(
-            arg!(
-                -b --breaktime <f64> ... "Add break length in minutes"
-            )
-            .value_parser(clap::value_parser!(f64)),
-        )
-        .arg(
-            arg!(
-                -r --rounds <i32> ... "Add number of work/break rounds"
-            )
-            .value_parser(clap::value_parser!(u32)),
-        )
-        .get_matches();
+    let worktime = args.worktime * 60.0;
 
-    if let Some(cli_worktime) = matches.get_one::<f64>("worktime") {
-        worktime = *cli_worktime * 60.0;
-    }
+    let breaktime = args.breaktime * 60.0;
 
-    if let Some(cli_breaktime) = matches.get_one::<f64>("breaktime") {
-        breaktime = *cli_breaktime * 60.0;
-    }
-
-    if let Some(cli_rounds) = matches.get_one::<i32>("rounds") {
-        rounds = *cli_rounds;
-    }
+    let mut rounds = args.rounds;
 
     //------------Worker Thread init----------------//
     let timer = Timer::new_timer(
