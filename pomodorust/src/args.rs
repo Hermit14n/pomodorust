@@ -15,3 +15,6 @@ pub struct TimerArgs {
     #[arg(short = 'r', long, default_value_t = -1)]
     pub rounds: i32,
 }
+
+#[cfg(test)]
+mod tests {}

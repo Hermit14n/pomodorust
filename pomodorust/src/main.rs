@@ -1,15 +1,13 @@
 use clap::Parser;
-use crossterm::{
-    cursor, execute, queue,
-    style::{self, Stylize},
-    terminal,
-};
+use crossterm::{cursor, execute, terminal};
 use pomodorust::{BreakTimer, State, Status, Timer, WorkTimer};
-use std::io::{stdin, stdout, Write};
+use std::io::{stdin, stdout};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 mod args;
+mod tui;
 use crate::args::TimerArgs;
+use crate::tui::tui;
 
 fn main() -> std::io::Result<()> {
     let status = Arc::new(Mutex::new(Status::Active));
@@ -72,59 +70,7 @@ fn main() -> std::io::Result<()> {
 
     //------------Input Thread End-----------------//
     let mut stdout = stdout();
-    execute!(stdout, cursor::SavePosition)?;
-    execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
-    loop {
-        for y in 0..21 {
-            for x in 0..61 {
-                if (y == 0 || y == 21 - 1) || (x == 0 || x == 61 - 1) {
-                    // in this loop we are more efficient by not flushing the buffer.
-
-                    queue!(
-                        stdout,
-                        cursor::MoveTo(x, y),
-                        style::PrintStyledContent("█".dark_cyan()),
-                        cursor::Hide,
-                        //terminal::Clear(terminal::ClearType::UntilNewLine),
-                    )?;
-                    if x == 60 || (y > 11 && y < 20) || y > 20 {
-                        queue!(stdout, terminal::Clear(terminal::ClearType::UntilNewLine),)?;
-                    }
-                }
-            }
-        }
-        queue!(
-            stdout,
-            cursor::MoveTo(5, 9),
-            style::PrintStyledContent("Status: ".dark_cyan()),
-            style::Print(state.lock().unwrap().to_string()),
-            terminal::Clear(terminal::ClearType::UntilNewLine),
-            cursor::MoveTo(60, 9),
-            style::PrintStyledContent("█".dark_cyan()),
-            cursor::Hide,
-            cursor::MoveTo(5, 10),
-            style::PrintStyledContent("Time Left: ".dark_cyan()),
-            terminal::Clear(terminal::ClearType::UntilNewLine),
-            style::PrintStyledContent((*time_left.lock().unwrap().to_string()).white()),
-            cursor::MoveTo(60, 10),
-            style::PrintStyledContent("█".dark_cyan()),
-            cursor::Hide,
-            cursor::MoveTo(5, 11),
-            style::PrintStyledContent(
-                "Press [p] to pause, [c] to continue, [e] to exit".dark_cyan()
-            ),
-            terminal::Clear(terminal::ClearType::UntilNewLine),
-            cursor::MoveTo(60, 11),
-            style::PrintStyledContent("█".dark_cyan()),
-            cursor::Hide,
-        )?;
-
-        if rx.try_recv().is_ok() {
-            break;
-        }
-
-        stdout.flush()?;
-    }
+    tui(rx, &stdout, state, time_left)?;
 
     // Want to accept args               Done
     // work time             -w <f64>    Done
