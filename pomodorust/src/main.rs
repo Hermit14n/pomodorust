@@ -1,7 +1,9 @@
 use clap::Parser;
-use crossterm::{cursor, execute, terminal};
 use crossterm::event::{read, Event, KeyCode, KeyEvent};
-use pomodorust::{BreakTimer, State, Status, Timer, WorkTimer};
+use crossterm::{cursor, execute, terminal};
+use pomodorust::breaktimer::BreakTimer;
+use pomodorust::worktimer::WorkTimer;
+use pomodorust::{State, Status, Timer};
 use std::io::stdout;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
@@ -52,9 +54,18 @@ fn main() -> std::io::Result<()> {
     std::thread::spawn(move || loop {
         let mut buffer = String::new();
         match read() {
-            Ok(Event::Key(KeyEvent{code: KeyCode::Char('p'),..})) => buffer = String::from("p"),
-            Ok(Event::Key(KeyEvent{code: KeyCode::Char('c'),..})) => buffer = String::from("c"),
-            Ok(Event::Key(KeyEvent{code: KeyCode::Char('e'),..})) => buffer = String::from("e"),
+            Ok(Event::Key(KeyEvent {
+                code: KeyCode::Char('p'),
+                ..
+            })) => buffer = String::from("p"),
+            Ok(Event::Key(KeyEvent {
+                code: KeyCode::Char('c'),
+                ..
+            })) => buffer = String::from("c"),
+            Ok(Event::Key(KeyEvent {
+                code: KeyCode::Char('e'),
+                ..
+            })) => buffer = String::from("e"),
             _ => (),
         };
 
