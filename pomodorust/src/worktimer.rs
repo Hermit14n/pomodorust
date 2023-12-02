@@ -49,10 +49,9 @@ impl WorkTimer {
     }
 
     pub fn adapt_timer_to_state(&self, elapsed: &mut Instant, pause_elapsed: &mut f64) {
-
         if *self.status.lock().unwrap() == Status::Active {
             *self.time_left.lock().unwrap() =
-            self.breaktime - elapsed.elapsed().as_secs_f64() - *pause_elapsed;
+                self.breaktime - elapsed.elapsed().as_secs_f64() - *pause_elapsed;
         } else if *self.status.lock().unwrap() == Status::Pause {
             *pause_elapsed += elapsed.elapsed().as_secs_f64();
             loop {
@@ -62,6 +61,5 @@ impl WorkTimer {
                 }
             }
         }
-
     }
 }
