@@ -17,4 +17,21 @@ pub struct TimerArgs {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use clap::Parser;
+    use crate::TimerArgs;
+    #[test]
+    pub fn test_defaults(){
+        let args = TimerArgs::parse_from(vec!["test"]);
+        assert_eq!(args.worktime, 25.0);
+        assert_eq!(args.breaktime, 5.0);
+        assert_eq!(args.rounds, -1);
+    }
+    #[test]
+    pub fn test_inputs(){
+        let args = TimerArgs::parse_from(vec!["test", "-w", "30.0", "-b", "30.0", "-r", "10"]);
+        assert_eq!(args.worktime, 30.0);
+        assert_eq!(args.breaktime, 30.0);
+        assert_eq!(args.rounds, 10);
+    }
+}
