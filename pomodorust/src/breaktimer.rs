@@ -30,19 +30,7 @@ impl BreakTimer {
         let mut pause_elapsed = 0.0;
 
         while *timer.time_left.lock().unwrap() > 0.0 {
-            if *timer.status.lock().unwrap() == Status::Active {
-                *timer.time_left.lock().unwrap() =
-                    timer.breaktime - elapsed.elapsed().as_secs_f64() - pause_elapsed;
-            } else if *timer.status.lock().unwrap() == Status::Pause {
-                pause_elapsed += elapsed.elapsed().as_secs_f64();
-                loop {
-                    // failure to pause printed time problem is here
-                    if *timer.status.lock().unwrap() == Status::Active {
-                        elapsed = Instant::now();
-                        break;
-                    }
-                }
-            }
+          timer.adapt_timer_to_state(&mut elapsed, &mut pause_elapsed);
         }
 
         Some(timer)
@@ -58,5 +46,22 @@ impl BreakTimer {
             self.state,
             self.time_left,
         )
+    }
+
+    pub fn adapt_timer_to_state(&self, elapsed: &mut Instant, pause_elapsed: &mut f64) {
+
+        if *self.status.lock().unwrap() == Status::Active {
+            *self.time_left.lock().unwrap() =
+            self.breaktime - elapsed.elapsed().as_secs_f64() - *pause_elapsed;
+        } else if *self.status.lock().unwrap() == Status::Pause {
+            *pause_elapsed += elapsed.elapsed().as_secs_f64();
+            loop {
+                if *self.status.lock().unwrap() == Status::Active {
+                    *elapsed = Instant::now();
+                    break;
+                }
+            }
+        }
+
     }
 }
