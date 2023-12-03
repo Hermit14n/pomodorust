@@ -56,7 +56,6 @@ pub fn tui(
             // TODO: seconds don't display 0 before single
             style::PrintStyledContent("Time Left: ".dark_cyan()),
             style::PrintStyledContent(time_string.white()),
-          
             // terminal::Clear(terminal::ClearType::UntilNewLine),
             cursor::MoveTo(60, 10),
             style::PrintStyledContent("█".dark_cyan()),
