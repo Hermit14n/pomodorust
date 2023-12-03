@@ -1,4 +1,5 @@
 use crate::mpsc::Receiver;
+use crate::seconds_to_minutes::convert_to_min_sec;
 use crossterm::{
     cursor, execute, queue,
     style::{self, Stylize},
@@ -16,6 +17,8 @@ pub fn tui(
 ) -> Result<(), std::io::Error> {
     execute!(stdout, cursor::SavePosition)?;
     execute!(stdout, terminal::Clear(terminal::ClearType::All))?;
+    let mut mins: i64;
+    let mut secs: i64;
     loop {
         for y in 0..21 {
             for x in 0..61 {
@@ -35,6 +38,8 @@ pub fn tui(
                 }
             }
         }
+        (mins, secs) = convert_to_min_sec(*time_left.lock().unwrap());
+
         queue!(
             stdout,
             cursor::MoveTo(5, 8),
@@ -51,7 +56,9 @@ pub fn tui(
             cursor::Hide,
             cursor::MoveTo(5, 10),
             style::PrintStyledContent("Time Left: ".dark_cyan()),
-            style::PrintStyledContent((*time_left.lock().unwrap().to_string()).white()),
+            style::PrintStyledContent((mins.to_string()).white()),
+            style::PrintStyledContent(":".white()),
+            style::PrintStyledContent((secs.to_string()).white()),
             terminal::Clear(terminal::ClearType::UntilNewLine),
             cursor::MoveTo(60, 10),
             style::PrintStyledContent("█".dark_cyan()),

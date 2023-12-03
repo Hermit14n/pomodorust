@@ -1,9 +1,11 @@
 use clap::Parser;
+mod seconds_to_minutes;
 use crossterm::event::{read, Event, KeyCode, KeyEvent};
 use crossterm::{cursor, execute, terminal};
 use pomodorust::breaktimer::BreakTimer;
 use pomodorust::worktimer::WorkTimer;
 use pomodorust::{State, Status, Timer};
+use pomodorust::breaktimer;
 use std::io::stdout;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
