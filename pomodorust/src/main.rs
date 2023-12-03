@@ -22,9 +22,21 @@ fn main() -> std::io::Result<()> {
     let (tx1, rx1) = mpsc::channel();
 
     let args = TimerArgs::parse();
-    let worktime = args.worktime * 60.0;
-    let breaktime = args.breaktime * 60.0;
-    let mut rounds = args.rounds;
+    let worktime: f64;
+    let breaktime: f64;
+    let mut rounds: i32;
+
+    match args {
+        x if x.worktime > 0.0 && x.breaktime > 0.0 => {
+            worktime = x.worktime * 60.0;
+            breaktime = x.breaktime * 60.0;
+            rounds = x.rounds;
+        }
+        _ => {
+            println!("Enter positive, nonzero worktime and breaktime");
+            std::process::exit(0)
+        }
+    }
 
     //------------Worker Thread init----------------//
     let timer = Timer::new_timer(
