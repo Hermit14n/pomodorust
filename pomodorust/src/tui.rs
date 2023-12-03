@@ -38,8 +38,7 @@ pub fn tui(
                 }
             }
         }
-        (mins, secs) = convert_to_min_sec(*time_left.lock().unwrap());
-
+e
         queue!(
             stdout,
             cursor::MoveTo(5, 8),
@@ -55,6 +54,7 @@ pub fn tui(
             style::PrintStyledContent("█".dark_cyan()),
             cursor::Hide,
             cursor::MoveTo(5, 10),
+            // TODO: seconds don't display 0 before single digits, terminal border blinking
             style::PrintStyledContent("Time Left: ".dark_cyan()),
             style::PrintStyledContent((mins.to_string()).white()),
             style::PrintStyledContent(":".white()),
